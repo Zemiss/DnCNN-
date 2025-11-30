@@ -24,7 +24,7 @@ cd C:\Users\12445\Desktop\DnCNN-
 第一次加上预训练
 --preprocess True 
 
-python train.py --preprocess True --num_of_layers 17 --mode S --noiseL 15 --val_noiseL 15 --outf logs/DnCNN-S-15 --epochs 5 --milestone 3
+python train.py --preprocess False --num_of_layers 17 --mode S --noiseL 50 --val_noiseL 50 --outf logs/DnCNN-S-50 --epochs 5 --milestone 3
 
 后续训练：
 nohup python train.py --preprocess True --num_of_layers 17 --mode S --noiseL 15 --val_noiseL 15 --outf logs/DnCNN-S-15 > logs/DnCNN-S-15.log 2>&1 &
@@ -44,7 +44,7 @@ python test.py --num_of_layers 20 --logdir logs/DnCNN-B --test_data "Set68" --te
 python test.py --num_of_layers 20 --logdir logs/DnCNN-B --test_data "Set68" --test_noiseL 25
 python test.py --num_of_layers 20 --logdir logs/DnCNN-B --test_data "Set68" --test_noiseL 50
 
-### BSD68 平均 RSNR（最后两个模型为本次作业复现）
+### BSD68 平均 RSNR（最后两个模型为复现原代码）
 |:-----------:|:-------:|:-------:|:---------------:|:---------------:|:---------------:|:---------------:|
 | Noise Level | DnCNN-S | DnCNN-B | DnCNN-S-PyTorch | DnCNN-B-PyTorch | DnCNN-S-pytorch | DnCNN-B-pytorch |
 |:-----------:|:-------:|:-------:|:---------------:|:---------------:|:---------------:|:---------------:|
@@ -53,6 +53,14 @@ python test.py --num_of_layers 20 --logdir logs/DnCNN-B --test_data "Set68" --te
 |     50      |  26.23  |  26.23  |      26.22      |      26.20      |      26.16      |      25.68      |
 |:-----------:|:-------:|:-------:|:---------------:|:---------------:|:---------------:|:---------------:|
 
+# 1为加入注意力机制 （训练批次五轮，第三轮开始衰减）
+|:-----------:|:--------:|:--------:|
+| Noise Level | DnCNN-S1 | DnCNN-B1 | 
+|:-----------:|:--------:|:--------:|
+|     15      |  31.73   |  31.61   | 
+|     25      |  29.23   |  29.16   |
+|     50      |  26.23   |  26.23   |
+|:-----------:|:--------:|:--------:|
 
 测试set12
 python test.py --num_of_layers 17 --logdir logs/DnCNN-S-15 --test_data "Set12" --test_noiseL 15
@@ -72,6 +80,14 @@ python test.py --num_of_layers 20 --logdir logs/DnCNN-B --test_data "Set12" --te
 |     50      | 27.178  | 27.206  |     27.165      |     27.138      |     27.057      |     26.435      |
 |:-----------:|:-------:|:-------:|:---------------:|:---------------:|:---------------:|:---------------:|
 
+# 1为加入注意力机制 
+|:-----------:|:--------:|:--------:|
+| Noise Level | DnCNN-S1 | DnCNN-B1 | 
+|:-----------:|:--------:|:--------:|
+|     15      |  31.73   |  31.61   | 
+|     25      |  29.23   |  29.16   |
+|     50      |  26.23   |  26.23   |
+|:-----------:|:--------:|:--------:|
 
 tensorboard --logdir=C:\Users\12445\Desktop\DnCNNpytorch\logs\DnCNN-S-15
 tensorboard --logdir=C:\Users\12445\Desktop\DnCNNpytorch\logs\DnCNN-S-25
