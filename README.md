@@ -19,12 +19,15 @@ tensorboardX (PyTorch 的 TensorBoard 可视化工具)
 
 conda activate myenv
 cd /home/xie/zzzmypython/DnCNNpytorch
+cd C:\Users\12445\Desktop\DnCNN-
 
 第一次加上预训练
 --preprocess True 
 
+python train.py --preprocess True --num_of_layers 17 --mode S --noiseL 15 --val_noiseL 15 --outf logs/DnCNN-S-15 --epochs 5 --milestone 3
+
 后续训练：
-nohup python train.py --preprocess False --num_of_layers 17 --mode S --noiseL 15 --val_noiseL 15 --outf logs/DnCNN-S-15 > logs/DnCNN-S-15.log 2>&1 &
+nohup python train.py --preprocess True --num_of_layers 17 --mode S --noiseL 15 --val_noiseL 15 --outf logs/DnCNN-S-15 > logs/DnCNN-S-15.log 2>&1 &
 
 nohup python train.py --preprocess False --num_of_layers 17 --mode S --noiseL 25 --val_noiseL 25 --outf logs/DnCNN-S-25  > logs/DnCNN-S-25.log 2>&1 &
 
