@@ -1,4 +1,4 @@
-DnCNN-PyTorch
+# DnCNN-PyTorch NeiKos496小组作业
 
 这是 TIP2017 论文 Beyond a Gaussian Denoiser: Residual Learning of Deep CNN for Image Denoising 的 PyTorch 实现(http://ieeexplore.ieee.org/document/7839189/)。
 
