@@ -23,6 +23,8 @@ cd /home/xie/zzzmypython/DnCNNpytorch
 第一次加上预训练
 --preprocess True 
 
+python train.py --preprocess True --num_of_layers 17 --mode S --noiseL 15 --val_noiseL 15 --outf logs/DnCNN-S-15 --epochs 5 --milestone 3
+
 后续训练：
 nohup python train.py --preprocess False --num_of_layers 17 --mode S --noiseL 15 --val_noiseL 15 --outf logs/DnCNN-S-15 > logs/DnCNN-S-15.log 2>&1 &
 
