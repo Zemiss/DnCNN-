@@ -1,0 +1,3 @@
+venv/
+train.h5
+val.h5
