@@ -19,6 +19,8 @@ tensorboardX (PyTorch 的 TensorBoard 可视化工具)
 
 conda activate myenv
 cd /home/xie/zzzmypython/DnCNNpytorch
+
+conda activate myenv
 cd C:\Users\12445\Desktop\DnCNN-
 
 第一次加上预训练
@@ -53,9 +55,9 @@ python test.py --num_of_layers 20 --logdir logs/DnCNN-B --test_data "Set68" --te
 |     50      |  26.23  |  26.23  |      26.22      |      26.20      |      26.16      |      25.68      |
 |:-----------:|:-------:|:-------:|:---------------:|:---------------:|:---------------:|:---------------:|
 
-# 1为加入注意力机制 （训练批次五轮，第三轮开始衰减）
+# 1为加入注意力机制（盲去噪下优化明显）
 |:-----------:|:--------:|:--------:|
-| Noise Level | DnCNN-S1 | DnCNN-B1 | 
+| Noise Level | DnCNN-S1 | DnCNN-B1 |
 |:-----------:|:--------:|:--------:|
 |     15      |  31.62   |  31.68   | 
 |     25      |  29.08   |  29.19   |
