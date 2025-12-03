@@ -18,8 +18,8 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 parser = argparse.ArgumentParser(description="DnCNN")
 parser.add_argument("--preprocess", type=bool, default=False, help='run prepare_data or not')
 parser.add_argument("--batchSize", type=int, default=128, help="Training batch size")
-parser.add_argument("--num_of_layers", type=int, default=17, help="Number of total layers")
-parser.add_argument("--epochs", type=int, default=50, help="Number of training epochs")
+parser.add_argument("--num_of_layers", type=int, default=20, help="Number of total layers")
+parser.add_argument("--epochs", type=int, default=100, help="Number of training epochs")
 parser.add_argument("--milestone", type=int, default=30, help="When to decay learning rate; should be less than epochs")
 parser.add_argument("--lr", type=float, default=1e-3, help="Initial learning rate")
 parser.add_argument("--outf", type=str, default="logs", help='path of log files')
@@ -46,19 +46,14 @@ def main():
     model = nn.DataParallel(net, device_ids=device_ids).cuda()
     criterion.cuda()
     # Optimizer
-    optimizer = optim.Adam(model.parameters(), lr=opt.lr)
+    optimizer = optim.AdamW(model.parameters(), lr=opt.lr, weight_decay=1e-4)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=opt.epochs, eta_min=1e-6)
     # training
     writer = SummaryWriter(opt.outf)
     step = 0
     noiseL_B=[0,55] # ingnored when opt.mode=='S'
     for epoch in range(opt.epochs):
-        if epoch < opt.milestone:
-            current_lr = opt.lr
-        else:
-            current_lr = opt.lr / 10.
-        # set learning rate
-        for param_group in optimizer.param_groups:
-            param_group["lr"] = current_lr
+        current_lr = optimizer.param_groups[0]['lr']
         print('learning rate %f' % current_lr)
         # train
         for i, data in enumerate(loader_train, 0):
@@ -94,6 +89,8 @@ def main():
                 writer.add_scalar('loss', loss.item(), step)
                 writer.add_scalar('PSNR on training data', psnr_train, step)
             step += 1
+        
+        scheduler.step() # 更新学习率
         ## the end of each epoch
         model.eval()
         #为了在验证阶段确保不计算梯度，并替代 volatile=True 的作用，在此次使用 torch.no_grad() 上下文管理器来包裹整个验证循环
