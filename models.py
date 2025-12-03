@@ -61,6 +61,8 @@ class DnCNN(nn.Module):
         # ===========================================================================================
         features = 128  # 原来是64
         
+        self.features = features # 为了在判别器中使用
+
         layers = []
         
         # 第一层：输入层，将输入图像映射到特征空间
@@ -96,3 +98,68 @@ class DnCNN(nn.Module):
         """
         out = self.dncnn(x)
         return out
+
+# ===========================================================================================
+# 【加入对抗神经网络的判别器】
+# 判别器网络：用于区分去噪后的图像和真实图像
+#
+# 网络结构：Conv-BN-ReLU -> Conv-BN-ReLU -> Conv-BN-ReLU -> FC
+# - 多层卷积层提取图像特征
+# - 全连接层进行分类判别
+# ===========================================================================================
+class Discriminator(nn.Module):
+    def __init__(self, channels, features=128):
+        super(Discriminator, self).__init__()
+        self.features = features
+        kernel_size = 3
+        padding = 1
+
+        self.conv1 = nn.Conv2d(in_channels=channels, out_channels=features, kernel_size=kernel_size, padding=padding, bias=False)
+        self.bn1 = nn.BatchNorm2d(features)
+        self.relu1 = nn.ReLU(inplace=True)
+
+        self.conv2 = nn.Conv2d(in_channels=features, out_channels=features*2, kernel_size=kernel_size, padding=padding, bias=False)
+        self.bn2 = nn.BatchNorm2d(features*2)
+        self.relu2 = nn.ReLU(inplace=True)
+
+        self.conv3 = nn.Conv2d(in_channels=features*2, out_channels=features*4, kernel_size=kernel_size, padding=padding, bias=False)
+        self.bn3 = nn.BatchNorm2d(features*4)
+        self.relu3 = nn.ReLU(inplace=True)
+
+        # 自适应平均池化，将特征图大小统一
+        self.avg_pool = nn.AdaptiveAvgPool2d((4, 4))
+
+        # 全连接层，用于判别真假
+        self.fc = nn.Sequential(
+            nn.Linear(features * 4 * 4 * 4, 1),  # 输出一个概率值，表示图像为真的概率
+            nn.Sigmoid()  # Sigmoid激活函数，将输出限制在0-1之间
+        )
+
+    def forward(self, x):
+        """
+        前向传播
+        输入：图像（去噪后的图像或真实图像）
+        输出：图像为真的概率
+        """
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu1(x)
+
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.relu2(x)
+
+        x = self.conv3(x)
+        x = self.bn3(x)
+        x = self.relu3(x)
+
+        # 自适应平均池化
+        x = self.avg_pool(x)
+
+        # 展开特征图
+        x = x.view(x.size(0), -1)
+
+        # 全连接层
+        x = self.fc(x)
+
+        return x

@@ -38,7 +38,12 @@ def main():
     # 原因：为了安全性，新版PyTorch建议显式指定weights_only=True
     #       这样可以防止加载恶意构造的pickle文件导致的任意代码执行
     # ===========================================================================================
-    model.load_state_dict(torch.load(os.path.join(opt.logdir, 'net.pth'), weights_only=True))
+    # 【GAN修改】加载由GAN训练得到的生成器模型
+    # 训练脚本现在将生成器（DnCNN）模型保存为 'net_G.pth'
+    # 判别器 'net_D.pth' 在测试阶段不需要使用
+    model_path = os.path.join(opt.logdir, 'net_G.pth')
+    print(f"Loading generator model from {model_path}")
+    model.load_state_dict(torch.load(model_path, weights_only=True))
     model.eval()
     # 加载数据信息
     print('Loading data info ...\n')
