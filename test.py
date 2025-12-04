@@ -41,7 +41,10 @@ def main():
     # 【GAN修改】加载由GAN训练得到的生成器模型
     # 训练脚本现在将生成器（DnCNN）模型保存为 'net_G.pth'
     # 判别器 'net_D.pth' 在测试阶段不需要使用
-    model_path = os.path.join(opt.logdir, 'net_G.pth')
+    # ===========================================================================================
+    # 【早停修改】加载由早停机制保存的最佳模型 'net_G_best.pth'，以获得最佳测试性能
+    # ===========================================================================================
+    model_path = os.path.join(opt.logdir, 'net_G_best.pth')
     print(f"Loading generator model from {model_path}")
     model.load_state_dict(torch.load(model_path, weights_only=True))
     model.eval()

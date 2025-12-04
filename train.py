@@ -20,13 +20,14 @@ parser = argparse.ArgumentParser(description="DnCNN")
 parser.add_argument("--preprocess", type=bool, default=False, help='是否运行数据预处理')
 parser.add_argument("--batchSize", type=int, default=128, help="训练批次大小")
 parser.add_argument("--num_of_layers", type=int, default=20, help="网络总层数")
-parser.add_argument("--epochs", type=int, default=100, help="训练轮数")
-parser.add_argument("--milestone", type=int, default=50, help="学习率衰减的里程碑，应小于总轮数")
+parser.add_argument("--epochs", type=int, default=50, help="训练轮数")
+parser.add_argument("--milestone", type=int, default=30, help="学习率衰减的里程碑，应小于总轮数")
 parser.add_argument("--lr", type=float, default=1e-3, help="初始学习率")
 parser.add_argument("--outf", type=str, default="logs", help='日志文件保存路径')
 parser.add_argument("--mode", type=str, default="S", help='已知噪声水平(S)或盲训练(B)')
 parser.add_argument("--noiseL", type=float, default=25, help='噪声水平；当mode=B时忽略')
 parser.add_argument("--val_noiseL", type=float, default=25, help='验证集使用的噪声水平')
+parser.add_argument("--patience", type=int, default=10, help="早停的耐心值")
 opt = parser.parse_args()
 
 # 模型训练主函数
@@ -83,6 +84,11 @@ def main():
     writer = SummaryWriter(opt.outf)
     step = 0
     noiseL_B=[0,55]  # 盲训练的噪声范围，当opt.mode=='S'时忽略
+
+    # 初始化早停相关变量
+    best_psnr_val = 0.0
+    epochs_no_improve = 0
+
     for epoch in range(opt.epochs):
         # 获取当前生成器的学习率并打印
         current_lr_G = optimizer_G.param_groups[0]['lr']
@@ -203,6 +209,19 @@ def main():
             psnr_val /= len(dataset_val)
         print("\n[epoch %d] PSNR_val: %.4f" % (epoch+1, psnr_val))
         writer.add_scalar('PSNR on validation data', psnr_val, epoch)
+
+        # 早停机制检查
+        if psnr_val > best_psnr_val:
+            best_psnr_val = psnr_val
+            epochs_no_improve = 0
+            # 保存最佳模型
+            torch.save(model_G.state_dict(), os.path.join(opt.outf, 'net_G_best.pth'))
+            torch.save(model_D.state_dict(), os.path.join(opt.outf, 'net_D_best.pth'))
+            print(f"Validation PSNR improved to {best_psnr_val:.4f}, saving best model.")
+        else:
+            epochs_no_improve += 1
+            print(f"Validation PSNR did not improve for {epochs_no_improve} epoch(s).")
+
         # 记录图像到TensorBoard
         out_train = torch.clamp(imgn_train-model_G(imgn_train), 0., 1.)
         Img = utils.make_grid(img_train.data, nrow=8, normalize=True, scale_each=True)
@@ -211,9 +230,13 @@ def main():
         writer.add_image('clean image', Img, epoch)
         writer.add_image('noisy image', Imgn, epoch)
         writer.add_image('reconstructed image', Irecon, epoch)
-        # 保存生成器和判别器模型
+        # 保存每个epoch结束时的最新模型
         torch.save(model_G.state_dict(), os.path.join(opt.outf, 'net_G.pth'))
         torch.save(model_D.state_dict(), os.path.join(opt.outf, 'net_D.pth'))
+
+        if epochs_no_improve >= opt.patience:
+            print(f"Early stopping triggered after {opt.patience} epochs without improvement.")
+            break
 
 if __name__ == "__main__":
     if opt.preprocess:
